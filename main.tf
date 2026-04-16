@@ -25,7 +25,7 @@ resource "local_file" "jenkins_private_key" {
 
 resource "aws_key_pair" "jenkins_private_key" {
     key_name = "jenkins_private_key"
-    public_key = tls_private_key.jenkins_private_key.public_key_pem
+    public_key = tls_private_key.jenkins_private_key.public_key_openssh
 }
 
 resource "aws_security_group" "jenkins_security_group" {
@@ -68,7 +68,7 @@ resource "aws_security_group" "jenkins_security_group" {
     }
 }
 
-resource "aws_instance" "Jenkins-VM" {
+resource "aws_instance" "Jenkins_VM" {
     ami = "ami-0e12ffc2dd465f6e4"
     instance_type = "t2.large"
     key_name = aws_key_pair.jenkins_private_key.key_name
@@ -81,7 +81,7 @@ resource "aws_instance" "Jenkins-VM" {
     }
 
     tags = {
-        Name = "Jenkins-VM"
+        Name = "Jenkins_VM"
     }
 
     provisioner "remote-exec" {
@@ -97,9 +97,10 @@ resource "aws_instance" "Jenkins-VM" {
             "sudo yum install java-21-amazon-corretto.x86_64 -y",
 
             "sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/rpm-stable/jenkins.repo",
-            "sudo yum upgrade",
-            "sudo yum install fontconfig java-21-openjdk",
-            "sudo yum install jenkins",
+            "sudo rpm --import https://pkg.jenkins.io/rpm-stable/jenkins.io-2023.key",
+            "sudo yum upgrade -y",
+            "sudo yum install fontconfig java-21-openjdk -y",
+            "sudo yum install jenkins -y",
             "sudo systemctl daemon-reload",
 
             "sudo usermod -aG docker jenkins",
